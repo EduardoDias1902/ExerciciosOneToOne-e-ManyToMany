@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.util.*;
 
+@Entity
+@Data
 public class Curso {
     @Id
     @GeneratedValue

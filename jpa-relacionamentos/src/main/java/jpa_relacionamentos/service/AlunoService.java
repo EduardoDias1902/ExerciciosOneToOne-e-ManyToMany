@@ -1,34 +1,65 @@
 package jpa_relacionamentos.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import jpa_relacionamentos.entity.Aluno;
-import jpa_relacionamentos.entity.Curso;
-import jpa_relacionamentos.repository.AlunoRepository;
-import jpa_relacionamentos.repository.CursoRepository;
+import jpa_relacionamentos.entity.*;
+import jpa_relacionamentos.repository.*;
+import jpa_relacionamentos.dto.*;
+
+import java.util.stream.Collectors;
 
 @Service
 public class AlunoService {
-    @Autowired
-    private AlunoRepository alunoRepo;
 
-     @Autowired
-    private CursoRepository cursoRepo;
+    @Autowired private AlunoRepository alunoRepo;
+    @Autowired private CursoRepository cursoRepo;
 
-    public Aluno salvar(Aluno a){
-        return alunoRepo.save(a);
+    public AlunoDTO salvar(AlunoDTO dto){
+        Aluno a = new Aluno();
+        a.setNome(dto.getNome());
+        return toDTO(alunoRepo.save(a));
     }
-    public Curso salvarCurso(Curso c){
-        return cursoRepo.save(c);
-    }
-    public Aluno matricular(Long alunoId,Long cursoId){
-        Aluno aluno = alunoRepo.findById(alunoId).orElseThrow();
-        Curso curso = cursoRepo.findById(cursoId).orElseThrow();
 
-        if(!aluno.getCursos().contains(curso)){
-            aluno.getCursos().add(curso);
-        }
-        return alunoRepo.save(aluno);
+    public CursoDTO salvarCurso(CursoDTO dto){
+        Curso c = new Curso();
+        c.setNome(dto.getNome());
+        return toCursoDTO(cursoRepo.save(c));
+    }
+
+    public AlunoDTO matricular(Long alunoId, Long cursoId){
+        Aluno a = alunoRepo.findById(alunoId).orElseThrow();
+        Curso c = cursoRepo.findById(cursoId).orElseThrow();
+
+        a.getCursos().add(c);
+        return toDTO(alunoRepo.save(a));
+    }
+
+    private AlunoDTO toDTO(Aluno a){
+        AlunoDTO dto = new AlunoDTO();
+        dto.setId(a.getId());
+        dto.setNome(a.getNome());
+
+        dto.setCursos(
+            a.getCursos().stream()
+                .map(Curso::getNome)
+                .collect(Collectors.toList())
+        );
+
+        return dto;
+    }
+
+    private CursoDTO toCursoDTO(Curso c){
+        CursoDTO dto = new CursoDTO();
+        dto.setId(c.getId());
+        dto.setNome(c.getNome());
+
+        dto.setAlunos(
+            c.getAlunos().stream()
+                .map(Aluno::getNome)
+                .collect(Collectors.toList())
+        );
+
+        return dto;
     }
 }
